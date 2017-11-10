@@ -12,6 +12,8 @@ on how the build is done:
      in the ~/.ivy2 directory.
 
          sbt compile
+         
+       
 
      The following compile warnings seem to be safe to ignore, but ensure the
      last compile ends with [SUCCESS] :
@@ -31,3 +33,10 @@ on how the build is done:
          [warn] there was one feature warning; re-run with -feature for details
          [warn] three warnings found
          [success] Total time: 7 s, completed Oct 19, 2017 12:13:14 PM
+         
+    The athanor jar library which is a dependency of this project should be fetched automatically by
+    the sbt compile step. If you get the following error , it means the dependency has not been
+    resolved. In this case try issuing sbt update, or deleting the staging area (By default HOME_DIRECTORY/.sbt/0.13/staging):
+    
+         HOME_DIR/athanor-server/src/main/scala/au/edu/utscic/athanorserver/athanor/Athanor.scala:25: not found: type JAtanor
+         [error]   lazy val athanor = new JAtanor

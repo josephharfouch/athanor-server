@@ -3,17 +3,23 @@
 
 ### Customizing the Athanor Library version
 
-The Athanor server repository contains a packaged build of Athanor in the lib directory.
+The Athanor server repository contains a packaged build of Athanor in the lib directory
+of the Athanor staging area (By default HOME_DIR/.sbt/0.13/staging). 
+
 
     ls lib
 
-    -rw-rw-r-- 1 7872063 jatanor-0.87b10.jar
+    ------ athanor.jar
     
     
-If you want to work with a different version of Athanor, download the Athanor repository
+If you want to work with a different version of Athanor, download the Athanor repository, 
+or work with the Athanor repository in the staging area.  
 and copy or link to one of the jar versions in athanor/java/versioned_dist/.
 Alternatively, follow the README.md instructions of the athanor project to produce java/dist/jatanor.jar
 and link to or copy that jar in order to work with the latest version of the Athanor code.
+
+If you work in the staging area, you might need to remove this staging area, to let sbt 
+return to the default once you finished your work. 
 
 For example, assuming Athanor-server and Athanor are installed in your home directory:
 

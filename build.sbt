@@ -34,24 +34,18 @@ libraryDependencies ++= Seq(
 
 //General
 libraryDependencies ++= Seq(
-  // nlytx dependency may no longer be needed given
-  // some of the functionality have moved to TAP
-  // "io.nlytx" %% "commons" % nlytxCommonsVersion,
-  //  "com.typesafe" % "config" % "1.3.1",
+  "au.edu.utscic" % "athanor" % "0.9.0",
   "org.json4s" %% "json4s-jackson" % json4sVersion,
   "de.heikoseeberger" %% "akka-http-json4s" % akkaHttpJson4sVersion,
   "org.skyscreamer" % "jsonassert" % jsonassertVersion,
   "org.scalatest" %% "scalatest" % scalatestVersion % "test",
   "org.slf4j" % "jcl-over-slf4j" % slf4jVersion,
-  "ch.qos.logback" % "logback-classic" % logbackVersion % Runtime
+  "ch.qos.logback" % "logback-classic" % logbackVersion //% Runtime
 )
 
 scalacOptions in (Compile, doc) ++= Seq("-doc-root-content", baseDirectory.value+"/src/main/scala/root-doc.md")
 
-//
-// If nlytx dependency needs to be reinstated, this resolver is not the
-// the right one, and needs to be updated.
-// resolvers += Resolver.bintrayRepo("nlytx", "nlytx_commons")
+resolvers += Resolver.bintrayRepo("nlytx", "athanor")
 
 //Documentation - run ;paradox;copyDocs
 enablePlugins(ParadoxPlugin) //Generate documentation with Paradox

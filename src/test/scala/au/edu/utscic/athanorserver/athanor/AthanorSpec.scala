@@ -13,6 +13,7 @@ class AthanorSpec extends UnitSpec {
   val rhetoricalMoves = List("ContrastStance", "SubjectAnalysis", "contrast", "context1", "challenge1", "temporality", "StanceAnalysis", "challenge")
 
 
+
   behavior of "AthanorSpec"
 
   //Not testing this with Travis - needs application.conf
@@ -55,18 +56,27 @@ class AthanorSpec extends UnitSpec {
     JSONAssert.assertEquals(expected,actual,true)
   }
 
-  it should "analyseParsedSentence" in {
-    val result = Athanor.analyseParsedSentence(TestData.athParsedSentence)
-    assert(result.toSet==rhetoricalMoves.toSet) //Order doesn't matter
+
+  if (Athanor.isReflectiveGrammar) {
+    it should "analyseParsedSentence" in {
+
+      val result = Athanor.analyseParsedSentence(TestData.athParsedSentence)
+      assert(result.toSet == rhetoricalMoves.toSet) //Order doesn't matter
+    }
+
+    it should "analyseJsonSentence" in {
+      val result = Athanor.analyseJson(TestData.athJsonString)
+      assert(result.toSet == rhetoricalMoves.toSet) //Order doesn't matter
+    }
   }
-
-  it should "analyseJsonSentence" in {
-    val result = Athanor.analyseJson(TestData.athJsonString)
-    assert(result.toSet==rhetoricalMoves.toSet) //Order doesn't matter
+  else
+  {
+    //TODO
+    // We need to add some testcases here for analytic grammar
+    // but even when we work out what to test, the test suite
+    // will only cover one configuration at a time, unless
+    // we remember to switch the configuration manually and repeat
+    // the test. See comments at the start of AthanorInvoker for
+    // more details.
   }
-
-
-
-
-
 }

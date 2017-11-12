@@ -60,7 +60,8 @@ Invoking the interface consists of carrying out two steps
 handle = loadProgram(path, arguments)
 
 - The path is a string that points to the grammar file that will be loaded.
-The path can be tailored via property files and environment variables. See @ref:[Tailoring the grammar path](../user/grammar_path.md) for more information., 
+The path can be tailored via property files and environment variables. 
+See @ref:[Tailoring the grammar path](../user/grammar_parser.md) for more information. 
 The name of the grammar file in the path is currently hard-coded to point at apply.kif
 - An empty string argument is currently passed.
 

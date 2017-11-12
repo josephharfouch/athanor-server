@@ -1,7 +1,7 @@
-## Tailoring the grammar path
+## Tailoring the grammar parser
 
-By default, Athanor-server looks for the grammar parser in the following
-paths:
+By default, Athanor-server uses the reflective analysis style and
+looks for the grammar parser in the following paths:
 
 1. /HOME_DIR/athanor/grammar where HOME_DIR is the value of the user
    home directory. (This corresponds to the default local setup)
@@ -16,17 +16,18 @@ grammar path :
 
        local grammar path =~/athanor/grammar/
        docker grammar path =/opt/docker/grammar/
+       grammar analysis style = reflective
 
-
-If Athanor-Server cannot find a grammar path, it will stop, and it should be restarted after tailoring is
-done to point at a valid grammar path.
+If Athanor-Server cannot find a grammar path or if an invalid analysis style is specified, 
+it will stop, and it should be restarted after tailoring is done to point at a 
+valid grammar path and a valid analysis style.
 
 You can tailor these values using a property file or by setting
 environment variables.
 
 ### Tailoring using the properties file:
 
-Grammar Path values in the property file have higher precedence over
+Values in the property file have higher precedence over
 hard-coded values.
 
 A sample file is provided in :
@@ -50,8 +51,13 @@ sample file you copied.
      etc ....
     docker grammar path =/docker_homedir/athanor/grammar
 
-You can now tailor the grammar.localPath and/or grammar.dockerPath in athanor-server.properties
-to set the values you want.
+and if you specify the analytic parsing style by setting: grammar.analysisStyle=analytic
+you should also see  the following message in the log:
+ 
+    grammar analysis style = analytic
+ 
+You can now tailor the grammar.localPath, grammar.dockerPath or grammar.analysisStyle 
+in athanor-server.properties to set the values you want.
 
 You can omit specifying parameters that you do not want to tailor.
 Further instructions on tailoring properties files are provided in the
@@ -66,6 +72,13 @@ grammar paths in locker and docker environments respectively:
 - ATHANOR_SERVER_LOCAL_GRAMMAR_PATH
 - ATHANOR_SERVER_DOCKER_GRAMMAR_PATH
 
+You can also tailor the grammar analysis style by setting the following 
+Environment variable: 
+
+-  ATHANOR_GRAMMAR_ANALYSIS_STYLE 
+
+where valid values are "reflective" or "analytic". The default is "reflective"
+
 For example:
 
     env ATHANOR_SERVER_LOCAL_GRAMMAR_PATH='/tmp/mylocalenv' sbt run
@@ -78,10 +91,17 @@ and issuing a similar command in a docker run:
 
     docker run -e ATHANOR_SERVER_DOCKER_GRAMMAR_PATH='/tmp/mydockerenv' "athanorserver:0.8"
 
-produces the following message:
+produces the following log message:
 
     INFO  athanor-server  - docker grammar path =/tmp/mydockerenv
 
+Tailoring the grammar path : 
+
+    env ATHANOR_GRAMMAR_ANALYSIS_STYLE="analytic" sbt run 
+
+produces the following message: 
+   
+    grammar analysis style = analytic
 
 ## Path conflicts
 

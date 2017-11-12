@@ -15,7 +15,7 @@ object Application extends App {
   val parserLoaded = Athanor.isGrammarParserLoaded
   if (parserLoaded == false) {
     log.error("Error: Failed to load Grammar Parser")
-    log.info("Please See instructions on tailoring the path to the Grammar Parser")
+    log.info("Please See instructions on tailoring the Grammar Parser")
   }
   else {
     Server.startServer("0.0.0.0", 8083)

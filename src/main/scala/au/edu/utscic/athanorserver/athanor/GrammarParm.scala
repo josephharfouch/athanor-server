@@ -10,7 +10,7 @@ import au.edu.utscic.athanorserver.StreamsContext.log
 /*
 * Created by jh on 25/10/2017
 */
-object GrammarPath {
+object GrammarParm {
 
   //
   // Precedence :
@@ -19,15 +19,15 @@ object GrammarPath {
   // 3) Hardcoded default value
   // Assumes defaultPath is always specified by caller.
   //
-  def getValue(defaultPath: String,
-               propertyPath: Option[String],
+  def getValue(defaultParm: String,
+               propertyParm: Option[String],
                envPath: Option[String]): String = {
     envPath match {
       case Some(e) => e
       case None =>
-        propertyPath match {
+        propertyParm match {
           case Some(x) => x
-          case None => defaultPath
+          case None => defaultParm
         }
     }
   }

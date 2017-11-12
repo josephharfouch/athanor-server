@@ -9,10 +9,7 @@ import org.json4s.jackson.JsonMethods.parse
 import org.json4s.jackson.Serialization
 import org.json4s.jackson.Serialization.write
 
-// Imports used to read property file
 
-// Imports used to join paths
-import java.nio.file.Paths
 
 // Imports used for logging
 import au.edu.utscic.athanorserver.StreamsContext.log
@@ -22,81 +19,83 @@ import au.edu.utscic.athanorserver.StreamsContext.log
   */
 object Athanor {
 
-  lazy val athanor = new JAtanor
+
 
 //
 // This property file can be used to set grammar path
 //
   val propertyFileName = "athanor-server.properties"
-//
-// This is the program that we are trying to load
-  val programName = "apply.kif" //TODO Need to be able to load different programs here - perhaps this should be a function
 
 //
-// Get the local grammar path.
-// This is set to a default value of /home_dir/athanor/grammar but can be manipulated
-// by the grammar.localPath value in the property file or
-// the ATHANOR_SERVER_LOCAL_GRAMMAR_PATH environmental variable.
+// Get the grammar style.
+// This is set to a default value of "reflective"
+// by the grammar.analysisStyle value in the property file or
+// the ATHANOR_GRAMMAR_ANALYSIS_STYLE environmental variable.
 // The precedence (High to Low) is:
 // 1) Environment variable 2) Property value 3) Hardcoded value
 //
 
+
+  val defaultGrammarAnalysisStyleDescription = GrammarAnalysisStyle.REFLECTIVE.toString
+
+  val specifiedGrammarAnalyisStyleDescription =
+    trim(GrammarParm.getValue(defaultGrammarAnalysisStyleDescription,
+         GrammarParm.getProperty(propertyFileName, "grammar.analysisStyle"),
+         GrammarParm.getEnv("ATHANOR_GRAMMAR_ANALYSIS_STYLE")).toLowerCase())
+
+  if (specifiedGrammarAnalyisStyleDescription != defaultGrammarAnalysisStyleDescription)
+    log.info("requested grammar analysis style = {} ", specifiedGrammarAnalyisStyleDescription)
+
+  val valid = ((specifiedGrammarAnalyisStyleDescription == GrammarAnalysisStyle.REFLECTIVE.toString) || (specifiedGrammarAnalyisStyleDescription == GrammarAnalysisStyle.ANALYTIC.toString))
+  if (!valid) {
+    log.error("{} is not a valid grammar style valid values are: {}, {}",
+      specifiedGrammarAnalyisStyleDescription, GrammarAnalysisStyle.REFLECTIVE.toString, GrammarAnalysisStyle.ANALYTIC.toString)
+  }
+
+
+  val grammarAnalysisStyleDescription = if (valid) specifiedGrammarAnalyisStyleDescription else GrammarAnalysisStyle.INVALID.toString
+  log.info("grammar analysis style = {} ", grammarAnalysisStyleDescription)
+
+
+  val grammarAnalysisStyle = GrammarAnalysisStyle.withName(grammarAnalysisStyleDescription)
+
+
+
+  //
+  // Get the local grammar path.
+  // This is set to a default value of /home_dir/athanor/grammar but can be manipulated
+  // by the grammar.localPath value in the property file or
+  // the ATHANOR_SERVER_LOCAL_GRAMMAR_PATH environmental variable.
+  // The precedence (High to Low) is:
+  // 1) Environment variable 2) Property value 3) Hardcoded value
+  //
+
   val homeDir = System.getProperty("user.home");
   val defaultLocalGrammarPath = homeDir + "/athanor/grammar/"
-  val localGrammarPath = GrammarPath.getValue(defaultLocalGrammarPath,
-               GrammarPath.getProperty(propertyFileName,"grammar.localPath" ),
-               GrammarPath.getEnv("ATHANOR_SERVER_LOCAL_GRAMMAR_PATH"))
-
+  val localGrammarPath = GrammarParm.getValue(defaultLocalGrammarPath,
+    GrammarParm.getProperty(propertyFileName, "grammar.localPath"),
+    GrammarParm.getEnv("ATHANOR_SERVER_LOCAL_GRAMMAR_PATH"))
   log.info("local grammar path ={} ", localGrammarPath)
-  val localGrammarFullPath = Paths.get(localGrammarPath).resolve(programName).toString()
-  log.info("local grammar full path={}", localGrammarFullPath)
-
-//
-// Attempt the load of the local grammar file
-//
-
-//
-// Note: The loader seems to return a 0 on success but I kept the
-// handler value that is passed to ExecuteFunctionArray in case there are situations
-// that I don't understand in which a positive handle id is returned and needs to
-// be passed back.
-//
-  val localGrammarHandler = athanor.LoadProgram(localGrammarFullPath,"")
-  val localGrammarLoaded = (localGrammarHandler >= 0)
-
-  log.info("LocalGrammarLoaded={}", localGrammarLoaded)
-
-//
-// Get the docker grammar path, but only attempt the load if the local grammar path
-// could not be loaded, as we maybe running in a docker environment.
-// Note that we get and display the docker path even when the local grammar path
-// was found and loaded, as this is useful to see the environment settings and trace
-// problems.
-// The docker path defaults to /opt/docker/grammar but its value can be manipulated by the
-// grammar.dockerPath value in the property file, or the ATHANOR_SERVER_DOCKER_GRAMMAR_PATH
-// environment variable. The precedence is the same as for local grammar files.
 
   val defaultDockerGrammarPath = "/opt/docker/grammar/"
-  val dockerGrammarPath = GrammarPath.getValue(defaultDockerGrammarPath,
-    GrammarPath.getProperty(propertyFileName,"grammar.dockerPath" ),
-    GrammarPath.getEnv("ATHANOR_SERVER_DOCKER_GRAMMAR_PATH"))
 
+  val dockerGrammarPath = GrammarParm.getValue(defaultDockerGrammarPath,
+    GrammarParm.getProperty(propertyFileName, "grammar.dockerPath"),
+    GrammarParm.getEnv("ATHANOR_SERVER_DOCKER_GRAMMAR_PATH"))
   log.info("docker grammar path ={} ", dockerGrammarPath)
-  val dockerGrammarFullPath = Paths.get(dockerGrammarPath).resolve(programName).toString()
-  log.info("docker grammar full path={}", dockerGrammarFullPath)
-  val dockerGrammarHandler = if (localGrammarHandler >= 0)
-                               -1
-                             else
-                               // Attempt the docker grammar path load
-                               athanor.LoadProgram(dockerGrammarFullPath, "")
 
-  val dockerGrammarLoaded = (dockerGrammarHandler >= 0)
 
-  log.info("dockerGrammarLoaded={}", dockerGrammarLoaded)
+  //
+  // Attempt the load of the local grammar file
+  //
 
-  val handler = if (localGrammarHandler >= 0) localGrammarHandler else dockerGrammarHandler
+  val handler = AthanorInvoker.loadAthanor(localGrammarPath, dockerGrammarPath, grammarAnalysisStyle)
+  log.info("handler = {}", handler)
 
-  def isGrammarParserLoaded: Boolean = localGrammarLoaded || dockerGrammarLoaded
+
+
+  def isGrammarParserLoaded: Boolean = (handler >= 0)
+  def isReflectiveGrammar: Boolean = (grammarAnalysisStyle == GrammarAnalysisStyle.REFLECTIVE)
 
   def parseJsonSentence(sent:String):ParsedSentence = {
 
@@ -118,12 +117,15 @@ object Athanor {
   }
 
   def analyseParsedSentence(parsed:ParsedSentence):List[String] = {
-    val jsonStr:String = parsedSentenceToJsonString(parsed)
-    this.analyseJson(jsonStr)
+    AthanorInvoker.analyseParsedSentence(handler, parsed)
   }
 
   def analyseJson(json:String):List[String] = {
-    athanor.ExecuteFunctionArray(handler,"Apply",List(json).toArray).toList
+    AthanorInvoker.analyseJson(handler, json)
   }
+
+  def ltrim(s: String) = s.replaceAll("^\\s+", "")
+  def rtrim(s: String) = s.replaceAll("\\s+$", "")
+  def trim(s:String) = rtrim(ltrim(s))
 }
 
